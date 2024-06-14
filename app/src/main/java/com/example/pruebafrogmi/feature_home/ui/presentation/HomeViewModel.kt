@@ -37,6 +37,9 @@ class HomeViewModel @Inject constructor(
     private val _storeOff: MutableStateFlow<List<StoreDataOffline>> = MutableStateFlow(emptyList())
     val storeOff = _storeOff.asStateFlow()
 
+    private val _showModal = MutableStateFlow<Boolean>(false)
+    val showModal = _showModal
+
     private var currentPage = 1
 
     fun getStores(){
@@ -57,6 +60,7 @@ class HomeViewModel @Inject constructor(
             is ResponseResult.Failed -> {
                 val error = result.error
                 Log.d("prueba1","response =====> ${error.message}")
+                showModal(show = true)
             }
             is ResponseResult.Success<*> -> {
                 data = result.data as ApiResponse
@@ -112,4 +116,9 @@ class HomeViewModel @Inject constructor(
             _storeOff.value = getStoreToDb()
         }
     }
+
+    fun showModal(show: Boolean) {
+        _showModal.value = show
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.example.pruebafrogmi.feature_home.ui.screen
 
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +28,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -36,6 +38,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.pruebafrogmi.R
 import com.example.pruebafrogmi.feature_home.domain.models.Store
 import com.example.pruebafrogmi.feature_home.domain.states.StoreUiState
+import com.example.pruebafrogmi.feature_home.ui.components.ErrorModal
 import com.example.pruebafrogmi.feature_home.ui.presentation.HomeViewModel
 import kotlinx.coroutines.flow.filter
 
@@ -44,6 +47,8 @@ fun HomeScreen(
     viewmodel: HomeViewModel = hiltViewModel()
 ) {
     val data by viewmodel.storeUiState.collectAsState()
+    val showModal by viewmodel.showModal.collectAsState()
+    val contextActivity = LocalContext.current as ComponentActivity
     LaunchedEffect(Unit) {
         viewmodel.getStores()
     }
@@ -57,6 +62,13 @@ fun HomeScreen(
         Title()
         Spacer(modifier = Modifier.height(20.dp))
         StoreList(data, viewmodel)
+    }
+
+    if (showModal){
+        ErrorModal(onClickClose = {
+            viewmodel.showModal(show = false)
+            contextActivity.finish()
+        })
     }
 }
 
