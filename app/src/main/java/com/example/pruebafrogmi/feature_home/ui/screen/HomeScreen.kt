@@ -78,6 +78,7 @@ fun StoreList(
     viewModel: HomeViewModel
 ) {
     val listState = rememberLazyListState()
+    val dataOff by viewModel.storeOff.collectAsState()
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.isScrolledToTheEnd() }
@@ -102,12 +103,10 @@ fun StoreList(
                     .align(Alignment.Center)
             )
         }
-
     } else {
         LazyColumn(state = listState) {
             items(data.store) { store ->
                 StoreItem(store = store)
-                viewModel.saveStoreToDb(store)
             }
         }
     }

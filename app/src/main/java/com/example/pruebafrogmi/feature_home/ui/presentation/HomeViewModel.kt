@@ -67,6 +67,8 @@ class HomeViewModel @Inject constructor(
                 store = data!!.data
                 links = data!!.links
                 saveStore.allStores.addAll(store)
+                saveStoreToDb(saveStore.allStores)
+                getStoresDb()
                 currentPage++
                 _storeUiState.update {
                     storeUiState.value.copy(
@@ -86,21 +88,23 @@ class HomeViewModel @Inject constructor(
             setLoading(isLoading = false)
         }
     }
-
-    fun saveStoreToDb(store: Store){
-        viewModelScope.launch(Dispatchers.IO){
-            dao.insertStore(
-                StoreEntity(
-                    name = store.attributes.name,
-                    code = store.attributes.code,
-                    address = store.attributes.full_address,
-                    id = 0
+    private fun saveStoreToDb(stores: List<Store>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            stores.forEach { store ->
+                dao.insertStore(
+                    StoreEntity(
+                        name = store.attributes.name,
+                        code = store.attributes.code,
+                        address = store.attributes.full_address,
+                        id = 0
+                    )
                 )
-            )
+            }
         }
     }
 
     private fun getStoreToDb(): List<StoreDataOffline>{
+        dao.deleteAllStores()
         val storeOffList = dao.getStore().map {
             StoreDataOffline(
                 name = it.name,
