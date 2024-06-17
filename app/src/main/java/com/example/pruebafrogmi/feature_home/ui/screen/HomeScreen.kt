@@ -36,6 +36,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.ImageLoader
+import coil.compose.rememberAsyncImagePainter
+import coil.decode.GifDecoder
+import coil.request.ImageRequest
 import com.example.pruebafrogmi.R
 import com.example.pruebafrogmi.feature_home.data.local.StoreDataOffline
 import com.example.pruebafrogmi.feature_home.domain.models.Store
@@ -99,6 +103,9 @@ fun StoreList(
 ) {
     val listState = rememberLazyListState()
     val dataOff by viewModel.storeOff.collectAsState()
+    val imageLoader = ImageLoader.Builder(LocalContext.current)
+        .components { add(GifDecoder.Factory()) }
+        .build()
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.isScrolledToTheEnd() }
@@ -116,11 +123,14 @@ fun StoreList(
                 .padding(top = 50.dp)
         ) {
             Image(
-                painter = painterResource(id = R.drawable.ic_empty2),
+                painter = rememberAsyncImagePainter(
+                    ImageRequest.Builder(LocalContext.current)
+                        .data(data = R.drawable.gifload)
+                        .build(),
+                    imageLoader = imageLoader
+                ),
                 contentDescription = "empty data",
-                modifier = Modifier
-                    .size(160.dp)
-                    .align(Alignment.Center)
+                modifier = Modifier.size(140.dp).align(Alignment.Center)
             )
         }
     } else {
