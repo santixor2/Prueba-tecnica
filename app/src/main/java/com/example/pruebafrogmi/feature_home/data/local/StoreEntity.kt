@@ -9,5 +9,6 @@ data class StoreEntity(
     val id : Int,
     val name : String? = "",
     val code : String? = "",
-    val address : String? = ""
+    val address : String? = "",
+    val synced : Boolean = false
 )

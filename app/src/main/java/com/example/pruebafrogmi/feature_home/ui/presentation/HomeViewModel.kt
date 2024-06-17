@@ -13,6 +13,7 @@ import com.example.pruebafrogmi.feature_home.domain.models.SaveStore
 import com.example.pruebafrogmi.feature_home.domain.models.Store
 import com.example.pruebafrogmi.feature_home.domain.states.StoreUiState
 import com.example.pruebafrogmi.feature_home.domain.usecase.FrogmiUseCase
+import com.example.pruebafrogmi.util.ConnectivityChecker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -68,7 +69,7 @@ class HomeViewModel @Inject constructor(
                 links = data!!.links
                 saveStore.allStores.addAll(store)
                 saveStoreToDb(saveStore.allStores)
-                getStoresDb()
+                //getStoresDb()
                 currentPage++
                 _storeUiState.update {
                     storeUiState.value.copy(
@@ -96,7 +97,8 @@ class HomeViewModel @Inject constructor(
                         name = store.attributes.name,
                         code = store.attributes.code,
                         address = store.attributes.full_address,
-                        id = 0
+                        id = 0,
+                        synced = true
                     )
                 )
             }
@@ -104,7 +106,7 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun getStoreToDb(): List<StoreDataOffline>{
-        dao.deleteAllStores()
+//        dao.deleteAllStores()
         val storeOffList = dao.getStore().map {
             StoreDataOffline(
                 name = it.name,
@@ -123,6 +125,19 @@ class HomeViewModel @Inject constructor(
 
     fun showModal(show: Boolean) {
         _showModal.value = show
+    }
+
+    fun networkChanges(){
+        viewModelScope.launch(Dispatchers.IO){
+            ConnectivityChecker.isNetworkAvailable.collect { isConnected ->
+                if (isConnected){
+                    getStores()
+                    getStoresDb()
+                }else{
+                    getStoresDb()
+                }
+            }
+        }
     }
 
 }

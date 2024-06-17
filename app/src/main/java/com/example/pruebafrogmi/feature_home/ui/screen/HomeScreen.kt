@@ -1,5 +1,6 @@
 package com.example.pruebafrogmi.feature_home.ui.screen
 
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
@@ -36,10 +37,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.pruebafrogmi.R
+import com.example.pruebafrogmi.feature_home.data.local.StoreDataOffline
 import com.example.pruebafrogmi.feature_home.domain.models.Store
 import com.example.pruebafrogmi.feature_home.domain.states.StoreUiState
 import com.example.pruebafrogmi.feature_home.ui.components.ErrorModal
 import com.example.pruebafrogmi.feature_home.ui.presentation.HomeViewModel
+import com.example.pruebafrogmi.util.ConnectivityChecker
 import kotlinx.coroutines.flow.filter
 
 @Composable
@@ -49,8 +52,14 @@ fun HomeScreen(
     val data by viewmodel.storeUiState.collectAsState()
     val showModal by viewmodel.showModal.collectAsState()
     val contextActivity = LocalContext.current as ComponentActivity
+    val context = LocalContext.current
+    ConnectivityChecker.initialize(context)
+    val isNetworkAvailable by ConnectivityChecker.isNetworkAvailable.collectAsState()
+    val dataOff by viewmodel.storeOff.collectAsState()
+
     LaunchedEffect(Unit) {
-        viewmodel.getStores()
+        //viewmodel.getStoresDb()
+        viewmodel.networkChanges()
     }
 
     Column(
@@ -61,10 +70,21 @@ fun HomeScreen(
     ) {
         Title()
         Spacer(modifier = Modifier.height(20.dp))
-        StoreList(data, viewmodel)
+        if (isNetworkAvailable){
+            StoreList(data, viewmodel)
+        }else{
+            Text(
+                text = "Sin Conexion",
+                fontSize = 24.sp,
+                color = Color.Black,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+            OfflineStoreList(storeOff = dataOff)
+        }
     }
 
-    if (showModal){
+    if (showModal && isNetworkAvailable){
         ErrorModal(onClickClose = {
             viewmodel.showModal(show = false)
             contextActivity.finish()
@@ -164,6 +184,51 @@ fun StoreItem(store: Store) {
             fontSize = 18.sp,
             color = Color.Gray
         )
+    }
+}
+
+@Composable
+fun StoreItem2(name : String? = "", code : String? = "", address : String? = "") {
+    Column(
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxWidth()
+            .border(1.dp, Color.Black)
+            .padding(8.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Text(
+                text = "$name",
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                color = Color.Black
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "$code}",
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                color = Color.Gray
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = "$address",
+            fontSize = 18.sp,
+            color = Color.Gray
+        )
+    }
+}
+
+@Composable
+fun OfflineStoreList(storeOff: List<StoreDataOffline>) {
+    LazyColumn {
+        items(storeOff) { store ->
+            StoreItem2(name = store.name,code = store.code,address = store.address)
+        }
     }
 }
 
