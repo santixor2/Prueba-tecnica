@@ -3,6 +3,7 @@ package com.example.pruebafrogmi.feature_home.ui.screen
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,6 +46,7 @@ import com.example.pruebafrogmi.feature_home.data.local.StoreDataOffline
 import com.example.pruebafrogmi.feature_home.domain.models.Store
 import com.example.pruebafrogmi.feature_home.domain.states.StoreUiState
 import com.example.pruebafrogmi.feature_home.ui.components.ErrorModal
+import com.example.pruebafrogmi.feature_home.ui.components.LoadingImage
 import com.example.pruebafrogmi.feature_home.ui.presentation.HomeViewModel
 import com.example.pruebafrogmi.util.ConnectivityChecker
 import kotlinx.coroutines.flow.filter
@@ -94,6 +96,9 @@ fun HomeScreen(
             contextActivity.finish()
         })
     }
+    if (data.isLoading){
+        LoadingImage()
+    }
 }
 
 @Composable
@@ -102,10 +107,6 @@ fun StoreList(
     viewModel: HomeViewModel
 ) {
     val listState = rememberLazyListState()
-    val dataOff by viewModel.storeOff.collectAsState()
-    val imageLoader = ImageLoader.Builder(LocalContext.current)
-        .components { add(GifDecoder.Factory()) }
-        .build()
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.isScrolledToTheEnd() }
@@ -115,29 +116,9 @@ fun StoreList(
             }
     }
 
-    if (data.isLoading) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 50.dp)
-        ) {
-            Image(
-                painter = rememberAsyncImagePainter(
-                    ImageRequest.Builder(LocalContext.current)
-                        .data(data = R.drawable.gifload)
-                        .build(),
-                    imageLoader = imageLoader
-                ),
-                contentDescription = "empty data",
-                modifier = Modifier.size(140.dp).align(Alignment.Center)
-            )
-        }
-    } else {
-        LazyColumn(state = listState) {
-            items(data.store) { store ->
-                StoreItem(store = store)
-            }
+    LazyColumn(state = listState) {
+        items(data.store) { store ->
+            StoreItem(store = store)
         }
     }
 }
